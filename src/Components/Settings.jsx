@@ -5,7 +5,6 @@ import rat from "../assets/test/rat.jpg";
 import theme_blue from "../assets/Private/theme-blue.png";
 import theme_dark from "../assets/Private/theme-dark.png";
 import theme_white from "../assets/Private/theme-white.png";
-
 //import placeholder from "../assets/test/rat.jpg"; 
 
 function Settings() {
@@ -16,23 +15,19 @@ function Settings() {
     const [error, setError] = useState(false);
     const [response, setResponse] = useState("");
     const [informations, setInformations] = useState({});
-    const [{ avatar, email, username, nickname, description }, setModifications] = useState({
-       /* avatar: "",
-        email: "",
-        username: "",
-        nickname: "",
-        description: ""*/
-    });
     
     const [{ alt, src }, setProfilePicture] = useState({
         src: "",
         alt: "Envoyer une image"
     });
+    
     const [users, setUsers] = useState({
+        //avatar: "",
         email: "",
         username: "",
         nickname: "",
-        description: ""
+        description: "",
+        password: ""
       });
 
     const history = useHistory();
@@ -92,6 +87,12 @@ function Settings() {
             let result = res.result[0];
             setInformations(result);
             setProfilePicture({ src: "http://boteric.tk/chatzone/profile/"+result.avatar });
+            setUsers({
+                email: result.email,
+                username: result.username,
+                nickname: result.nickname,
+                description: result.description
+            })
           }
         })
       return () => mounted = false;
@@ -99,29 +100,7 @@ function Settings() {
 
     //Upload profile picture
     const uploadProfilePicture = async (e) => {
-        document.getElementById("input-preview-image").click()
-        /*
-        const requestOptions = {
-            method: "POST",
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': `Bearer ${jwt}`
-            }
-
-        };
-        fetch("http://boteric.tk:3000/api/v1/users/"+user_id, requestOptions)
-            .then((res) => {
-                if (res.status === 204) {
-                    localStorage.removeItem("jwt");
-                    localStorage.removeItem("user_id");
-                    history.push('/login');
-                }
-                else {
-                    setError(true)
-                    setResponse(res.result)
-                    console.log(res.result)
-                }
-            })*/
+        document.getElementById("input-preview-image").click();
     }
 
     const handleChange = async (e) => {
@@ -135,18 +114,78 @@ function Settings() {
             let file = "";
             fileReader.onload = function(fileLoadedEvent) {
                 file = fileLoadedEvent.target.result;
-                setModifications({
+
+                const requestOptions = {
+                    method: "PATCH",
+                    headers: {
+                        'Access-Control-Allow-Origin': 'http://localhost:3000',
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${jwt}`
+                    },
+                    body: JSON.stringify({
+                        avatar: file.toString()
+                    }),
+                  };
+                  return fetch("http://boteric.tk:3000/api/v1/users/"+user_id, requestOptions)
+                    .then((res) =>  console.log(res.json()))
+                    /*.then((res) => {
+              
+                      if (res.result !== "success") {
+                        setResponse(res.result)
+                      } else {
+                        setError(true);
+                        setResponse(res.result);
+                      }
+                    });
+                
+                /*setUsers({
                     avatar: file
-                })
+                })*/
             };
             // Convert data to base64
             fileReader.readAsDataURL(e.target.files[0]);
         }
     }
+
+
+    const data = {
+        //on récup les éléments du users
+        avatar: users.avatar,
+        email: users.email,
+        username: users.username,
+        nickname: users.nickname,
+        password: users.password
+      };
+
     const handleSubmit = async (e) => {
         //on envoie le formulaire et on fait tout ce qu'il faut dedans (créer une fonction pour simplifier tout)
         e.preventDefault();
-    
+
+        if (users.password.length < 1 || users.avatar.length < 1 || users.description.length < 1 || users.email.length < 1 || users.nickname.length < 1 || users.username.length < 1){
+            setError(true);
+            setResponse("Alors, on modifie le code HTML ?")
+        }
+
+        const requestOptions = {
+            method: "PATCH",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwt}`
+            },
+            body: JSON.stringify(data),
+          };
+
+          fetch("http://boteric.tk:3000/api/v1/modify/"+user_id, requestOptions)
+            .then((res) => res.json())
+            .then((res) => {
+      
+              if (res.result !== "success") {
+                setResponse(res.result)
+              } else {
+                setError(true);
+                setResponse(res.result);
+              }
+            });
 
       };
 
@@ -192,20 +231,20 @@ function Settings() {
 
                                     <div className="info-form">
                                         <span className="name"> {informations.username} </span>
-                                        <span className="description">{informations.description} <span className="tag">#macron2022</span></span>
+                                        <span className="description">{users.description}</span>
                                     </div>
                                 </div>
                                 <div className="bottom-informations">
                                     <div className="first-colums">
-                                        <span>Username : <br/><input type="text" name="username" onChange={onChange} placeholder={informations.username}/></span>
-                                        <span>Nickname: <br/><input type="text" name="nickname"  onChange={onChange} placeholder={informations.nickname}/></span>
+                                        <span>Username : <br/><input type="text" name="username" onChange={onChange} value={users.username} required/></span>
+                                        <span>Nickname: <br/><input type="text" name="nickname"  onChange={onChange} value={users.nickname} required/></span>
                                     </div>
                                     <div className="second-colums">
-                                        <span>Email : <br/><input type="email" name="email" placeholder="email" onChange={onChange} placeholder={informations.email}/></span>
+                                        <span>Email : <br/><input type="email" name="email" placeholder="Email" onChange={onChange} value={users.email} required/></span>
                                         <span>Date de naissance: <br/>{informations.birthday}</span>
                                     </div>
                                     <div className="third-colums">
-                                        <span>Mot de passe actuel : <br/><input type="password" name="password" placeholder="mot de passe"/></span>
+                                        <span>Mot de passe actuel : <br/><input type="password" name="password" placeholder="****" onChange={onChange} value={users.password} required /></span>
                                         <span><button type="submit" onSubmit={handleSubmit}>Mettre à jour le compte</button></span>
                                     </div>
                                 </div>
