@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import "../Style/login.css";
-import * as moment from "moment";
+import dayjs from "dayjs";
 import { useHistory } from "react-router-dom";
 
 function Register() {
+  
   const [users, setUsers] = useState({
     //Crée le state (fonction) setUsers et les objets à l'intérieur s'appel users
     email: "",
@@ -17,8 +18,8 @@ function Register() {
 
   const [error, setError] = useState(false);
   const [response, setResponse] = useState("");
-  const max_birthday = moment().subtract(13, "years").format("YYYY-MM-DD");
-  const min_birthday = moment().subtract(120, "years").format("YYYY-MM-DD");
+  const max_birthday = dayjs().subtract(13, "years").format("YYYY-MM-DD");
+  const min_birthday = dayjs().subtract(120, "years").format("YYYY-MM-DD");
 
   const data = {
     //on récup les éléments du users
@@ -43,18 +44,15 @@ function Register() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     };
-    fetch("http://boteric.tk:3000/api/v1/register", requestOptions)
-      .then((res) => res.json())
-      .then((res) => {
+    let request = await fetch("http://boteric.tk:3000/api/v1/register", requestOptions);
+    let res = await request.json();
 
-        if (res.result === "success") {
-          history.push("/login")
-        } else {
-          setError(true);
-          setResponse(res.result);
-        }
-      });
-  };
+    console.log(res)
+
+    if (res.result === "success") return history.push("/login")
+    setError(true);
+    setResponse(res.error);
+  }
 
   const onChange = (e) => {
     //on récup chaque changement des inputs
@@ -66,35 +64,37 @@ function Register() {
   if(localStorage.getItem("jwt")) history.push('/home');
 
   return (
-    <div className="login">
-      <div className="login-page">
-        <div className="form">
-          <form className="register-form" method="POST">
-            <h2>Pas encore de compte ?</h2>
-            <div className="login_error">{error ? response : ""}</div>
-            <div className="inputstyle">
-              <label>Email :</label>
-              <input type="email" name="email" autoComplete="email" value={users.email} onChange={onChange} id="email" />
-            </div>
-            <div className="inputstyle">
-              <label>Username :</label>
-              <input type="text" name="username" autoComplete="username" value={users.nickname} onChange={onChange} id="username" />
-            </div>
-            <div className="inputstyle">
-              <label>Mot de passe :</label>
-              <input type="password" name="password" autoComplete="current-password" value={users.password} onChange={onChange} id="password" />
-            </div>
-            <div className="inputstyle">
-              <label>Confirmer le mot de passe :</label>
-              <input type="password" name="password2" autoComplete="new-password" value={users.password2} onChange={onChange} id="password2" />
-            </div>
-            <div className="inputstyle">
-              <label>Date de naissance :</label>
-              <input type="date" name="birthday" autoComplete="birthday" value={users.birthday} onChange={onChange} id="birthday" min={min_birthday} max={max_birthday} />
-            </div>
-            <button type="submit" name="register" onClick={handleSubmit} >Commence ton aventure</button>
-            <a className="change_form" href="/login">Connecte toi !</a>
-          </form>
+    <div className="html">
+      <div className="login">
+        <div className="login-page">
+          <div className="form">
+            <form className="register-form" method="POST">
+              <h2>Pas encore de compte ?</h2>
+              <div className="login_error">{error ? response : ""}</div>
+              <div className="inputstyle">
+                <label>Email :</label>
+                <input type="email" name="email" autoComplete="email" value={users.email} onChange={onChange} id="email" />
+              </div>
+              <div className="inputstyle">
+                <label>Username :</label>
+                <input type="text" name="username" autoComplete="username" value={users.nickname} onChange={onChange} id="username" />
+              </div>
+              <div className="inputstyle">
+                <label>Mot de passe :</label>
+                <input type="password" name="password" autoComplete="current-password" value={users.password} onChange={onChange} id="password" />
+              </div>
+              <div className="inputstyle">
+                <label>Confirmer le mot de passe :</label>
+                <input type="password" name="password2" autoComplete="new-password" value={users.password2} onChange={onChange} id="password2" />
+              </div>
+              <div className="inputstyle">
+                <label>Date de naissance :</label>
+                <input type="date" name="birthday" autoComplete="birthday" value={users.birthday} onChange={onChange} id="birthday" min={min_birthday} max={max_birthday} />
+              </div>
+              <button type="submit" onClick={handleSubmit} >Commence ton aventure</button>
+              <a class="message" href="/login">Pas encore enregistré ?</a>
+            </form>
+          </div>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ function Home() {
     return (
         <div className="theme-main">
             <Navbar />
-            <p>appuis sur al pdp</p>
+            
         </div>
     );
 }

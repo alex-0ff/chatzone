@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
+
 import Navbar from "./Navbar";
 import rat from "../assets/test/rat.jpg";
 import theme_blue from "../assets/Private/theme-blue.png";
@@ -10,11 +11,11 @@ import theme_white from "../assets/Private/theme-white.png";
 function Settings() {
 
     let jwt = localStorage.getItem("jwt");
-    let user_id = localStorage.getItem("user_id");
-
+    let user_info = JSON.parse(localStorage.getItem("user_info"));
+    
     const [error, setError] = useState(false);
     const [response, setResponse] = useState("");
-    const [informations, setInformations] = useState({});
+    const [loading, setLoading] = useState(false);
 
     const [{ alt, src }, setProfilePicture] = useState({
         src: "",
@@ -27,65 +28,74 @@ function Settings() {
         username: "",
         nickname: "",
         description: "",
-        password: ""
+        password: "",
+        birthday: {
+            year: "",
+            month: "",
+            day: ""
+        }
     });
 
     const history = useHistory();
 
-    const disconnect = () => {
-        localStorage.removeItem("jwt");
-        localStorage.removeItem("user_id");
-        history.push('/login');
-    }
-
-    const delete_account = () => {
+    const delete_account = async () => {
         const requestOptions = {
             method: "DELETE",
             headers: {
                 'Authorization': `Bearer ${jwt}`
             }
-
         };
-        fetch("http://boteric.tk:3000/api/v1/users/" + user_id, requestOptions)
-            .then((res) => {
-                if (res.status === 204) {
-                    localStorage.removeItem("jwt");
-                    localStorage.removeItem("user_id");
-                    history.push('/login');
-                }
-                else {
-                    setError(true)
-                    setResponse(res.result)
-                    console.log(res.result)
-                }
-            })
+        let request = await fetch("http://boteric.tk:3000/api/v1/users/"+user_info.id, requestOptions);
+
+        if (request.status === 204) {
+            localStorage.removeItem("jwt");
+            localStorage.removeItem("user_id");
+            history.push('/login');
+            
+        } else {
+            let res = await request.json();
+            setError(true)
+            setResponse(res.error)
+        }
+    }
+
+    const deactivate_account = async () => {
+        return;
     }
 
     useEffect(() => {
-        let jwt = localStorage.getItem("jwt");
-        let user_id = localStorage.getItem("user_id");
+        async function fetchData() {
 
-        if (jwt) {
-            const requestOptions = {
-                method: "GET",
-                headers: {
-                    'Authorization': `Bearer ${jwt}`
-                }
-            };
-            return fetch("http://boteric.tk:3000/api/v1/users/" + user_id, requestOptions)
-                .then((res) => res.json())
-                .then(res => {
-                        let result = res.result[0];
-                        setInformations(result);
-                        setProfilePicture({ src: "http://boteric.tk/chatzone/profile/" + result.avatar });
-                        setUsers({
-                            email: result.email,
-                            username: result.username,
-                            nickname: result.nickname,
-                            description: result.description
-                        })
+            let jwt = localStorage.getItem("jwt");
+            let user_info = JSON.parse(localStorage.getItem("user_info"));
+            let months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+            
+            if (jwt) {
+                const requestOptions = {
+                    method: "GET",
+                    headers: {
+                        'Authorization': `Bearer ${jwt}`
+                    }
+                };
+                let request = await fetch("http://boteric.tk:3000/api/v1/users/"+user_info.id, requestOptions);
+                let res = await request.json();
+                let result = res.result;
+
+                setProfilePicture({ src: result.avatar });
+                setUsers({
+                    email: result.email,
+                    username: result.username,
+                    nickname: result.nickname,
+                    description: result.description,
+                    birthday: {
+                        year: result.birthday.year,
+                        month: months[result.birthday.month],
+                        day: result.birthday.day
+                    }
                 })
+            }
         }
+        fetchData();
     }, [])
 
     //Upload profile picture
@@ -102,9 +112,9 @@ function Settings() {
 
             let fileReader = new FileReader();
             let file = "";
-            fileReader.onload = function (fileLoadedEvent) {
+            fileReader.onload = async function (fileLoadedEvent) {
                 file = fileLoadedEvent.target.result;
-
+                
                 const requestOptions = {
                     method: "PATCH",
                     headers: {
@@ -115,83 +125,72 @@ function Settings() {
                         avatar: file.toString()
                     }),
                 };
-                return fetch("http://boteric.tk:3000/api/v1/users/"+user_id, requestOptions)
-                    .then((res) => res.json())
-                /*.then((res) => {
-          
-                  if (res.result !== "success") {
-                    setResponse(res.result)
-                  } else {
-                    setError(true);
-                    setResponse(res.result);
-                  }
-                });
+                setLoading(true)
+
+                const request = await fetch("http://boteric.tk:3000/api/v1/users/"+user_info.id, requestOptions);
+                const res = await request.json();
+
+                if(res.error) return setLoading(false)
+
+                localStorage.setItem("user_info", JSON.stringify(res.result));
+                setLoading(false)
             
-            /*setUsers({
-                avatar: file
-            })*/
             };
             // Convert data to base64
             fileReader.readAsDataURL(e.target.files[0]);
         }
     }
 
-
-    const data = {
-        //on récup les éléments du users
-        email: users.email,
-        username: users.username,
-        nickname: users.nickname,
-        password: users.password
-    };
-
     const handleSubmit = async (e) => {
+
+        let data = {
+            //on récup les éléments du users
+            email: users.email,
+            username: users.username,
+            nickname: users.nickname,
+            password: users.password,
+            description: users.description
+        };
+
         //on envoie le formulaire et on fait tout ce qu'il faut dedans (créer une fonction pour simplifier tout)
         e.preventDefault();
 
-        if (users.password.length < 1 || users.description.length < 1 || users.email.length < 1 || users.nickname.length < 1 || users.username.length < 1) {
+        if (users.password?.length < 1 || users.description?.length < 1 || users.email?.length < 1 || users.nickname?.length < 1|| users.username?.length < 1 ) {
 
             setError(true);
-            setResponse("Alors, on modifie le code HTML ?")
+            setResponse("Oops, verify that all your field are not empty !!")
+        }else{
+
+            const requestOptions = {
+                method: "PATCH",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`
+                },
+                body: JSON.stringify(data),
+            };
+            setLoading(true)
+
+            const request = await fetch("http://boteric.tk:3000/api/v1/users/"+user_info.id, requestOptions);
+            const res = await request.json();
+
+            if(res.error) return setLoading(false)
+
+            localStorage.setItem("user_info", JSON.stringify(res.result));
+            setLoading(false)
         }
-
-        const requestOptions = {
-            method: "PATCH",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${jwt}`
-            },
-            body: JSON.stringify(data),
-        };
-        console.log(data)
-        console.log(requestOptions)
-        fetch("http://boteric.tk:3000/api/v1/users/"+user_id, requestOptions)
-            .then((res) => console.log(res))
-            /*.then((res) => {
-                console.log(res)
-                if (res.result !== "success") {
-                    setResponse(res.result)
-                } else {
-                    setError(true);
-                    setResponse(res.result);
-                }
-            });*/
-
     };
-
     const onChange = (e) => {
         //on récup chaque changement des inputs
         e.persist();
-        debugger;
+        //debugger;
         setUsers({ ...users, [e.target.name]: e.target.value }); //à chaque changement des inputs dans le formulaires ont changes les données du setUsers
     };
-
     return (
         <div className="theme-main">
             <Navbar />
             <div className="main">
                 <section className="settings">
-                    {error ? response : ""}
                     <div className="menu">
                         <div className="menu-top">
                             <h3>Paramètres</h3>
@@ -205,53 +204,57 @@ function Settings() {
                                 <a href="#update">Légal</a>
                             </div>
                         </div>
-                        <div className="menu-bottom">
-                            <button className="btn-index" onClick={disconnect} >Déconnexion</button>
-                            <button className="btn-index" onClick={delete_account}>Supprimer le compte</button>
-                        </div>
                     </div>
                     <div className="informations">
                         <div id="mon-compte">
                             <h3>Mon compte</h3>
-                            <form className="my-informations">
+                            <div className="my-informations">
                                 <div className="top-informations">
-
-                                    <div className="pdp-100 middle" style={{ backgroundImage: `url(${src})` }} alt={alt} id="preview-image" onClick={uploadProfilePicture} />
-                                    <input type="file" accept=".png, .jpg, .jpeg" id="input-preview-image" onChange={handleChange} />
-
+                                    <form>
+                                        <div className="pdp-100 middle" style={{ backgroundImage: `url(${src})` }} alt={alt} id="preview-image" onClick={uploadProfilePicture} />
+                                        <input type="file" accept=".png, .jpg, .jpeg" id="input-preview-image" onChange={handleChange} />
+                                    </form>
                                     <div className="info-form">
-                                        <span className="name"> {informations.username} </span>
-                                        <span className="description">{users.description}</span>
+                                        <span className="name"><input type="text" name="username" onChange={onChange} value={users.username} required /></span>
+                                        <span className="description"><input type="text" name="description" onChange={onChange} value={users.description} required /></span>
                                     </div>
                                 </div>
-                                <div className="bottom-informations">
-                                    <div className="first-colums">
-                                        <span>Username : <br /><input type="text" name="username" onChange={onChange} value={users.username} required /></span>
-                                        <span>Nickname: <br /><input type="text" name="nickname" onChange={onChange} value={users.nickname} required /></span>
+                                
+                                { loading ? "Loading ..." : "" }
+                                { error ? response : "" }
+
+                                <form method="PATCH">
+                                    <div className="bottom-informations">
+                                        <div className="first-colums">
+                                            <span>Nickname: <br /><input type="text" name="nickname" onChange={onChange} value={users.nickname} required /></span>
+                                            <span>Email : <br /><input type="email" name="email" placeholder="Email" onChange={onChange} value={users.email} required /></span>
+                                        </div>
+                                        <div className="second-colums">
+                                            <span>Birthday: <br />{users.birthday.day} {users.birthday.month} {users.birthday.year}</span>
+                                        </div>
+                                        <div className="third-colums">
+                                            <span>Mot de passe actuel : <br /><input type="password" name="password" placeholder="****" onChange={onChange} required /></span>
+                                            <span><button type="submit" onClick={handleSubmit} >Mettre à jour le compte</button></span>
+                                        </div>
                                     </div>
-                                    <div className="second-colums">
-                                        <span>Email : <br /><input type="email" name="email" placeholder="Email" onChange={onChange} value={users.email} required /></span>
-                                        <span>Date de naissance: <br />{informations.birthday}</span>
-                                    </div>
-                                    <div className="third-colums">
-                                        <span>Mot de passe actuel : <br /><input type="password" name="password" placeholder="****" onChange={onChange} required /></span>
-                                        <span><button type="submit" onClick={handleSubmit} >Mettre à jour le compte</button></span>
-                                    </div>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
+                            <div className="menu-bottom">
+                                <button className="btn-index" onClick={delete_account}>Supprimer le compte</button>
+                                <button className="btn-index" onClick={deactivate_account}>Désactiver le compte</button>
+                            </div>
                         </div>
+
                         <div id="themes">
                             <h3>Affichage</h3>
                             <div className="theme-choose">
                                 <div className="theme-container">
                                     <p>Thème Bleu foncé</p>
                                     <img className="theme-image" draggable="false" src={theme_blue} alt="" />
-
                                 </div>
                                 <div className="theme-container">
                                     <p>Thème foncé</p>
                                     <img className="theme-image" draggable="false" src={theme_dark} alt="" />
-
                                 </div>
                                 <div className="theme-container">
                                     <p>Thème clair</p>
@@ -273,9 +276,8 @@ function Settings() {
 
                         <div id="connexions">
                             <h3>Connexions</h3>
-                            <div className="user-connexions">
+                        <div className="user-connexions">
                                 <div>
-
                                 </div>
                             </div>
                         </div>
@@ -285,5 +287,6 @@ function Settings() {
         </div>
     );
 }
+
 
 export default Settings;
