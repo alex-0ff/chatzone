@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
+import { Helmet } from 'react-helmet';
 
 function Login() {
     const history = useHistory();
@@ -27,7 +28,7 @@ function Login() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         };
-        fetch("http://boteric.tk:3000/api/v1/login", requestOptions)
+        fetch("http://boteric.fr:3000/api/v1/login", requestOptions)
         .then(response => response.json())
         .then(response => {
             if(response.error){
@@ -52,6 +53,10 @@ function Login() {
 
     return (
         <div className="html">
+                <Helmet>
+                    <title>ChatZone - Signin</title>
+                    <meta name="description" content="Connect to ChatZone"/>
+                </Helmet>
             <div className="login-page">
                 <div className="form">
                     <form className="login-form" method="POST">

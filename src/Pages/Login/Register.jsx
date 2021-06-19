@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import "../Style/login.css";
 import dayjs from "dayjs";
+import Helmet from "react-helmet";
 import { useHistory } from "react-router-dom";
 
 function Register() {
@@ -44,7 +44,7 @@ function Register() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     };
-    let request = await fetch("http://boteric.tk:3000/api/v1/register", requestOptions);
+    let request = await fetch("http://boteric.fr:3000/api/v1/register", requestOptions);
     let res = await request.json();
 
     console.log(res)
@@ -65,6 +65,10 @@ function Register() {
 
   return (
     <div className="html">
+      <Helmet>
+        <title>ChatZone - Register</title>
+        <meta name="description" content="Register now to ChatZone"/>
+      </Helmet>
       <div className="login">
         <div className="login-page">
           <div className="form">
