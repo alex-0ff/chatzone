@@ -829,7 +829,7 @@ section.messages {
 
 .chatsection .input {
   margin-bottom: 5px;
-  
+  padding: 5px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -889,7 +889,7 @@ section.home {
   background-color: var(--bg-primary);
   max-width: calc(var(--nav-width) + var(--gap) * 2);
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   color: var(--text-normal);
   height: calc(100vh - var(--nav-height));
   overflow: hidden;
@@ -898,10 +898,66 @@ section.home {
   padding: 5px;
 }
 
-.create-post-button {
-  position: fixed;
-  bottom: 25px;
-  right: 200px;
+.home .create-post {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  border: 2px solid var(--bg-secondary);
+  padding: 10px;
+}
+
+.home .false-post {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.home .false-post span {
+  width: 15%;
+}
+
+.home .false-post input{
+  height: 50px;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--bg-primary);
+  width: calc(100% - 15%);
+}
+
+.home .false-post input::placeholder {
+  padding: 10px;
+  font-size: 16px;
+}
+
+.home .real-post {
+  width: 100%;
+}
+
+.real-post div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.real-post-header button, .real-post-bottom button {
+  background: none;
+  border: none;
+}
+
+.real-post div.real-post-bottom-div, .real-post div.real-post-bottom {
+  margin-bottom: 0px;
+}
+
+.home .real-post textarea{
+  width: 100%;
+  resize: vertical;
+  padding: 10px;
+  font-size: 16px;
+  height: 170px;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--bg-primary);
+  color: var(--text-normal);
 }
 
 @media screen and (max-width: 800px) {
@@ -1139,5 +1195,17 @@ section.home {
 
   .chatsection .input textarea {
     border-radius: 8px;
+  }
+
+  .home .false-post {
+    flex-direction: column;
+    align-content: center;
+  }
+
+  .home .false-post span{
+    margin-left: 2px;
+  }
+  .home .false-post span, .home .false-post input{
+    width: 100%;
   }
 }
