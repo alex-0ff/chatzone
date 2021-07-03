@@ -96,7 +96,7 @@ function Register() {
                 <input type="date" name="birthday" autoComplete="birthday" value={users.birthday} onChange={onChange} id="birthday" min={min_birthday} max={max_birthday} />
               </div>
               <button type="submit" onClick={handleSubmit} >Commence ton aventure</button>
-              <a class="message" href="/login">Pas encore enregistré ?</a>
+              <a className="message" href="/login">Pas encore enregistré ?</a>
             </form>
           </div>
         </div>

@@ -11,9 +11,9 @@ function Notfound() {
             <div className="main">
                 <div className="not-found">
                 <h1>Can't find this page</h1>
-                <section class="error-container">
+                <section className="error-container">
                     <span>4</span>
-                    <span><span class="screen-reader-text">0</span></span>
+                    <span><span className="screen-reader-text">0</span></span>
                     <span>4</span>
                 </section>
                 </div>

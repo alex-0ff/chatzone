@@ -9,7 +9,7 @@ import Home from "./Public/Home/Home";
 import Messages from "./Public/Messages/Messages";
 import Settings from "./Public/Settings/Settings";
 import Post from "./Public/Posts/Post";
-import Profile from "./Public/Profile";
+import Profile from "./Public/Profile/Profile";
 import Explore from "./Public/Explore";
 import Notfound from "./Public/error/Notfound";
 
@@ -22,7 +22,7 @@ function App() {
                     <Router>
                         <Switch />
                             <Route exact path="/" component={Home} />
-                            <Route path="/u/:nickname" exact component={Profile} />
+                            <Route path="/user/:nickname" exact component={Profile} />
                             <Route path="/login" component={Login} />
                             <Route path="/register" component={Register} />
                             <Route path="/settings/:section" component={Settings} />
