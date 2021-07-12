@@ -930,7 +930,7 @@ section.home {
   width: 100%;
 }
 
-.real-post div {
+.real-post-content div {
   display: flex;
   flex-direction: row;
   justify-content: space-between;

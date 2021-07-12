@@ -2,7 +2,7 @@ import React from "react";
 import Navbar from "../Components/Navbar";
 
 import Users from "./Views/Users";
-import ChatBox from "./Views/ChatBox";
+import ChatBox from "./Views/ChatBoxVerify";
 import { useParams } from "react-router";
 
 function Messages() {
